@@ -31,7 +31,8 @@ ip addr
 ```
 
 Screenshot:
-<img width="937" height="372" alt="Screenshot 2026-02-05 205015" src="https://github.com/user-attachments/assets/6198aa20-0d2d-41ac-9867-ad20dd5475a7" />
+
+<img width="915" height="314" alt="Screenshot 2026-02-05 204132" src="https://github.com/user-attachments/assets/a70c95b2-90c8-4c53-9ac4-4736ad83b915" />
 
 
 ---
@@ -104,7 +105,7 @@ Screenshot:
 
 
 ## Network Diagram
-
+```
 ┌─────────────────────────────────────────────┐
 │    VirtualBox Host-only Network (vboxnet0)  │
 │            192.168.56.0/24                  │
@@ -117,7 +118,7 @@ Screenshot:
 │  Kali   │   │  Ubuntu  │   │Metasploitable│
 │ [K-IP]  │   │ [U-IP]   │   │   [M-IP]     │
 └─────────┘   └──────────┘   └──────────────┘
-
+```
 ## What I Learned
 
 ### Networking Concepts Applied
