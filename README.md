@@ -5,7 +5,10 @@ Hello! I'm Jesse from  Nigeria — an aspiring **SOC Analyst** (entry point) wit
 
 This repo tracks my hands-on cybersecurity journey, starting with **TryHackMe's Pre Security** learning path. I'm building strong foundations in networking, how the web works, Linux, and Windows — essential for blue team triage and later offensive techniques.
 
-**Current Progress:** In the "How The Web Works" module (just finished DNS in Detail, resting before HTTP in Detail)  
+**Current Progress:** ## Progress
+- ✅ Phase 1: Network Setup 
+- ✅ Phase 2: Network Discovery 
+- 🔄 Phase 3: Vulnerability Testing 
 **Total Goal:** Complete Pre Security → SOC Level 1 → Offensive paths
 
 ## Why Pre Security?
@@ -24,10 +27,11 @@ I'll update this with notes, key takeaways, screenshots, and commands as I go.
 
 - **Network Fundamentals**  
   - OSI Model, LAN, Packets & Frames, Extending Networks
+  - 
+## Documentation
+- [Network Setup](network-setup.md) - Lab configuration
+- [Network Discovery](network-discovery.md) - Port scanning and service identification
 
-### In Progress
-- **How The Web Works**  
-  - DNS in Detail ✅ (learned recursive resolution, record types like A/AAAA/CNAME/MX, TTL, root/TLD/authoritative servers)
 
 ### Upcoming
 - HTTP in Detail
