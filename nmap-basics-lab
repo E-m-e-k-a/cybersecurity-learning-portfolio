@@ -1,0 +1,374 @@
+# Nmap Basics - TryHackMe
+
+## Date Completed: February 22, 2026
+
+## Module Overview
+Completed Nmap fundamentals, learning network reconnaissance techniques including host discovery, port scanning, service version detection, scan timing optimization, and result documentation.
+
+## What is Nmap?
+
+**Nmap (Network Mapper)** is an open-source network scanning tool used for:
+- Network discovery and mapping
+- Port scanning and service identification
+- Operating system detection
+- Vulnerability assessment preparation
+- Network inventory and audit
+
+**Used by:**
+- Penetration testers (offensive)
+- SOC analysts (defensive)
+- Network administrators (inventory)
+- Security researchers (vulnerability discovery)
+
+---
+
+## Host Discovery
+
+### Purpose
+Identify which hosts are alive on a network before scanning them.
+
+### Common Methods
+
+**Ping Scan (List live hosts):**
+```bash
+nmap -sn 192.168.1.0/24
+```
+- Sends ICMP echo requests (ping)
+- Also sends TCP SYN to port 443 and TCP ACK to port 80
+- Does NOT scan ports
+- Fast way to map live hosts
+
+**List Scan (No packets sent):**
+```bash
+nmap -sL 192.168.1.0/24
+```
+- Lists all IPs in range
+- Does NOT send packets
+- Preview before actual scan
+
+---
+
+## Port Scanning Types
+
+### TCP Connect Scan (`-sT`)
+```bash
+nmap -sT 10.10.10.10
+```
+
+**How it works:**
+- Completes full TCP 3-way handshake
+- SYN → SYN-ACK → ACK
+- Reliable but detectable
+
+**Pros:**
+- Works without root privileges
+- Accurate results
+
+**Cons:**
+- Logged by target systems
+- Slower than SYN scan
+- Easier to detect
+
+---
+
+### SYN Scan (`-sS`) - Stealth Scan
+```bash
+sudo nmap -sS 10.10.10.10
+```
+
+**How it works:**
+- Sends SYN packet
+- Receives SYN-ACK if port open
+- Sends RST (reset) instead of ACK
+- Never completes handshake
+
+**Pros:**
+- Stealthier (doesn't complete connection)
+- Faster than TCP connect
+- Default scan type (if run as root)
+
+**Cons:**
+- Requires root/admin privileges
+- Still detectable by modern IDS/IPS
+
+---
+
+### UDP Scan (`-sU`)
+```bash
+sudo nmap -sU 10.10.10.10
+```
+
+**How it works:**
+- Sends UDP packets to ports
+- No response = port might be open (UDP is stateless)
+- ICMP Port Unreachable = port closed
+
+**Important UDP services:**
+- DNS (53)
+- DHCP (67/68)
+- SNMP (161)
+- NTP (123)
+
+**Pros:**
+- Discovers UDP services (often forgotten)
+
+**Cons:**
+- Very slow (UDP has no handshake)
+- Less reliable results
+
+---
+
+## Service Version Detection
+
+### Basic Version Detection (`-sV`)
+```bash
+nmap -sV 10.10.10.10
+```
+
+**What it does:**
+- Connects to open ports
+- Sends probes to identify service
+- Determines software name and version
+
+**Example output:**
+```
+PORT    STATE SERVICE  VERSION
+22/tcp  open  ssh      OpenSSH 8.2p1 Ubuntu
+80/tcp  open  http     Apache httpd 2.4.41
+443/tcp open  ssl/http nginx 1.18.0
+```
+
+**Why it matters:**
+- Identifies vulnerable versions
+- Helps research exploits
+- Maps software inventory
+- Essential for vulnerability assessments
+
+---
+
+### Aggressive Version Detection (`-A`)
+```bash
+nmap -A 10.10.10.10
+```
+
+**Enables:**
+- Version detection (`-sV`)
+- OS detection (`-O`)
+- Script scanning (`-sC`)
+- Traceroute (`--traceroute`)
+
+**Warning:** Very noisy and easily detected!
+
+---
+
+## Common Port Ranges
+
+### Default Scan
+```bash
+nmap 10.10.10.10
+```
+- Scans **top 1000 most common ports**
+
+### Specific Ports
+```bash
+nmap -p 80,443 10.10.10.10          # Scan ports 80 and 443
+nmap -p 1-100 10.10.10.10           # Scan ports 1-100
+nmap -p- 10.10.10.10                # Scan ALL 65535 ports
+```
+
+### Port Ranges
+```bash
+nmap -p 20-25,80,443,3000-4000 10.10.10.10
+```
+
+---
+
+## Scan Timing
+
+Nmap has timing templates to control scan speed vs stealth.
+
+### Timing Templates (`-T`)
+```bash
+nmap -T0 10.10.10.10  # Paranoid (extremely slow, max stealth)
+nmap -T1 10.10.10.10  # Sneaky (very slow, stealth)
+nmap -T2 10.10.10.10  # Polite (slower, less network load)
+nmap -T3 10.10.10.10  # Normal (default)
+nmap -T4 10.10.10.10  # Aggressive (faster, noisier)
+nmap -T5 10.10.10.10  # Insane (fastest, very noisy)
+```
+
+### When to use each:
+
+**T0-T2 (Stealth):**
+- Penetration testing with IDS evasion
+- Avoiding detection
+- Time not a concern
+
+**T3 (Normal):**
+- Balanced scanning
+- Default choice
+- Reasonable speed and stealth
+
+**T4 (Aggressive):**
+- Fast network scans
+- When detection doesn't matter
+- Internal network audits
+
+**T5 (Insane):**
+- Very fast networks only
+- High chance of missing results
+- Rarely recommended
+
+---
+
+## Output Formats
+
+### Normal Output (`-oN`)
+```bash
+nmap -oN scan_results.txt 10.10.10.10
+```
+- Human-readable format
+- Same as terminal output
+- Good for reports
+
+---
+
+### XML Output (`-oX`)
+```bash
+nmap -oX scan_results.xml 10.10.10.10
+```
+- Machine-readable format
+- Can be imported into other tools
+- Best for automation
+
+---
+
+### Grepable Output (`-oG`)
+```bash
+nmap -oG scan_results.gnmap 10.10.10.10
+```
+- Easy to parse with grep/awk
+- One line per host
+- Good for scripting
+
+---
+
+### All Formats (`-oA`)
+```bash
+nmap -oA scan_results 10.10.10.10
+```
+- Saves in all three formats:
+  - scan_results.nmap (normal)
+  - scan_results.xml (XML)
+  - scan_results.gnmap (grepable)
+
+---
+
+## Practical Examples
+
+### Quick Network Survey
+```bash
+# Find live hosts
+nmap -sn 192.168.1.0/24
+
+# Scan live hosts for common ports
+nmap 192.168.1.1-254
+```
+
+---
+
+### Web Server Enumeration
+```bash
+# Find web servers and their versions
+nmap -p 80,443,8080,8443 -sV 10.10.10.0/24
+```
+
+---
+
+### Full Host Assessment
+```bash
+# Comprehensive scan with version detection
+sudo nmap -sS -sV -p- -T4 -oA full_scan 10.10.10.10
+```
+- SYN scan (`-sS`)
+- Version detection (`-sV`)
+- All ports (`-p-`)
+- Aggressive timing (`-T4`)
+- Save all formats (`-oA`)
+
+---
+
+### Stealth Scan
+```bash
+# Slow, stealthy scan
+sudo nmap -sS -T2 -f -D RND:10 10.10.10.10
+```
+- SYN scan (`-sS`)
+- Polite timing (`-T2`)
+- Fragment packets (`-f`)
+- Decoy scan with 10 random IPs (`-D RND:10`)
+
+---
+
+## Security Applications
+
+### For Attackers (Red Team):
+1. **Reconnaissance** - Map target network
+2. **Service identification** - Find vulnerable versions
+3. **Attack surface mapping** - Identify entry points
+4. **Vulnerability research** - Match versions to exploits
+
+### For Defenders (Blue Team):
+1. **Asset inventory** - Know what's on the network
+2. **Vulnerability assessment** - Find outdated software
+3. **Compliance checking** - Verify approved services only
+4. **Attack surface reduction** - Identify unnecessary open ports
+
+---
+
+## Common Nmap Commands Reference
+
+| Task | Command |
+|------|---------|
+| Find live hosts | `nmap -sn 192.168.1.0/24` |
+| Scan common ports | `nmap 10.10.10.10` |
+| Scan all ports | `nmap -p- 10.10.10.10` |
+| Version detection | `nmap -sV 10.10.10.10` |
+| Fast aggressive scan | `sudo nmap -sS -sV -T4 10.10.10.10` |
+| Stealth scan | `sudo nmap -sS -T2 10.10.10.10` |
+| UDP scan | `sudo nmap -sU 10.10.10.10` |
+| Save results | `nmap -oA results 10.10.10.10` |
+
+---
+
+## What I Learned
+
+### Technical Skills:
+- Multiple scan types for different scenarios
+- Service version enumeration
+- Timing control for stealth vs speed
+- Proper result documentation
+
+### Security Mindset:
+- Every open port = potential attack vector
+- Version information reveals vulnerabilities
+- Reconnaissance is the foundation of both attack and defense
+- Proper documentation essential for analysis
+
+### Key Insight:
+Nmap isn't just a port scanner — it's an intelligence-gathering tool. Understanding what's running on a network is the first step in both securing it and attacking it.
+
+---
+
+## Next Steps
+- Practice on vulnerable VMs (HackTheBox, TryHackMe)
+- Learn Nmap Scripting Engine (NSE)
+- Combine with other tools (Metasploit, Burp Suite)
+- Study IDS/IPS evasion techniques
+
+---
+
+## Resources
+- TryHackMe - Nmap Room
+- Nmap official documentation: https://nmap.org/book/
+- Practice: `nmap --help` and `man nmap`
