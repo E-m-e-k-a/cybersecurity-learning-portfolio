@@ -1,0 +1,97 @@
+# Week of February 22-25, 2026 - TryHackMe Progress
+
+## Modules Completed This Week: 5
+
+### 1. Tcpdump Basics
+**Focus:** Command-line packet analysis
+- Mastered reading PCAP files and applying filters
+- Learned packet size filtering and TCP flag analysis
+- Suppressed hostname resolution for faster processing
+- Used Unix utilities for efficient packet counting
+
+**Key Skills:** CLI-based network traffic analysis, large PCAP processing without GUI overhead
+
+---
+
+### 2. Nmap Basics
+**Focus:** Network reconnaissance and port scanning
+- Host discovery methods
+- TCP/SYN/UDP scan types
+- Service version detection
+- Timing controls and output formats
+
+**Key Skills:** Network enumeration, identifying attack vectors, vulnerability research preparation
+
+---
+
+### 3. Cryptography Basics
+**Focus:** Fundamental encryption concepts
+- Symmetric (AES) vs Asymmetric (RSA) encryption
+- Hybrid approaches in HTTPS
+- Classical ciphers (Caesar)
+- Core operations (XOR, modulo)
+
+**Key Skills:** Understanding encrypted traffic, ransomware analysis, detecting weak encryption
+
+---
+
+### 4. Public Key Cryptography Basics
+**Focus:** Asymmetric cryptography deep dive
+- RSA key generation with prime factorization
+- Diffie-Hellman key exchange
+- SSH authentication (RSA, ECDSA, Ed25519)
+- Digital signatures and PKI/certificate trust chains
+- OpenPGP/GPG encryption
+
+**Key Skills:** TLS handshake analysis, SSH security assessment, certificate validation, MitM detection
+
+---
+
+### 5. Hashing Basics
+**Focus:** Hash functions and password cracking
+- Hash algorithms: MD5, SHA-1, SHA-256, bcrypt
+- Salting and rainbow table prevention
+- Hashcat usage for hash cracking
+- Hash mode identification
+
+**Key Skills:** Forensic hash identification, password storage security assessment, hash cracking for pentesting
+
+---
+
+## Technical Tools Learned
+- **Tcpdump** - Command-line packet analyzer
+- **Nmap** - Network scanner and reconnaissance tool
+- **Hashcat** - GPU-accelerated password cracking
+- **OpenSSL** - Cryptographic operations
+- **SSH-keygen** - Key pair generation
+- **GPG** - Email and file encryption
+
+---
+
+## Security Applications
+
+### For SOC Analysts:
+- Analyzing network traffic efficiently from command line
+- Identifying reconnaissance activity and port scans
+- Detecting encrypted malware C2 channels
+- Validating TLS/SSH configurations
+- Investigating weak password storage
+
+### For Offensive Security:
+- Network enumeration and service discovery
+- Exploiting cryptographic misconfigurations
+- Cracking weak password hashes
+- SSH key-based attacks
+- Certificate validation bypass techniques
+
+---
+
+## Next Week Goals
+- Complete John the Ripper module
+- Continue Cybersecurity 101 path
+- Work toward comprehensive project covering all learned concepts
+
+---
+
+## Study Hours This Week: ~15-20 hours
+## Modules Remaining in Cyber 101: TBD
