@@ -17,8 +17,7 @@ These basics help me understand:
 - Web technologies (DNS, HTTP — foundation for web exploits)
 - Linux & Windows operations (most real-world systems)
 
-## Path Progress
-I'll update this with notes, key takeaways, screenshots, and commands as I go.
+
 
 ### Completed
 - **Introduction to Cyber Security**  
@@ -33,17 +32,28 @@ I'll update this with notes, key takeaways, screenshots, and commands as I go.
 - [Network Discovery](network-discovery.md) - Port scanning and service identification
 
 
-### Upcoming
-- HTTP in Detail
-- How Websites Work
-- Putting it all together
-- Linux Fundamentals (Parts 1–3)
-- Windows Fundamentals (1–3)
+## 📂 How This Repo is Organized
 
-## How I'll Document
-- Screenshots of TryHackMe completion badges/tasks
-- Personal notes & explanations
-- Key commands / diagrams
+### Cyber 101 Modules
+All my TryHackMe Cyber 101 learning documentation:
+- [Cryptography Basics](./Cryptography.md)
+- [Public Key Cryptography](./public-key-cryptography-basics.md)
+- [John the Ripper](./John-The-Ripper.md)
+- [Nmap Basics](./nmap-basics-lab.md)
+- [Network Concepts](./networking-concepts.md)
+
+### Weekly Progress
+- [Week 1 Summary](./WEEKLY-PROGRESS.md)
+- [Week 2 Recap](./week-recap.md)
+
+---
+
+## 🛠️ Skills I'm Learning
+- Network Analysis
+- Password Cracking
+- Cryptography
+- Linux Command Line
+
 
 
 ## Connect & Follow Along
