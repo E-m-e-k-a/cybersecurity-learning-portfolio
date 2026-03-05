@@ -1,0 +1,886 @@
+# John the Ripper - Advanced Password Cracking Techniques
+
+## Date Completed: March 4, 2026
+
+## Module Overview
+Mastered advanced John the Ripper techniques including custom rule creation for targeted password attacks, rule syntax and operations, implementing organization-specific cracking strategies, and extending capabilities to crack password-protected files (ZIP, RAR, SSH keys) for comprehensive penetration testing and forensic investigation workflows.
+
+---
+
+## Why Custom Rules Matter
+
+### The Problem with Generic Wordlists
+
+**Rockyou.txt contains 14 million passwords** - but they're generic:
+- password
+- 123456
+- admin
+- qwerty
+
+**Real-world passwords follow patterns:**
+- Company2024!
+- Summer2024!
+- Admin@123
+- P@ssw0rd2024
+
+**Without custom rules:** You'll never crack these patterns  
+**With custom rules:** Transform "company" → "Company2024!" automatically
+
+### The Power of Rules
+
+**One word becomes hundreds of variations:**
+
+Starting word: `admin`
+
+**Basic wordlist attack tries:** 1 password  
+**With custom rules tries:** 50+ passwords
+- admin
+- Admin
+- ADMIN
+- Admin1
+- Admin123
+- Admin2024
+- Admin2024!
+- Adm1n
+- @dmin
+- Admin@123
+- etc.
+
+---
+
+## Custom Rule Syntax
+
+### Rule Command Reference
+
+#### **Case Operations**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `c` | Capitalize first letter | password → Password |
+| `u` | Convert to UPPERCASE | password → PASSWORD |
+| `l` | Convert to lowercase | PASSWORD → password |
+| `C` | Lowercase first, UPPERCASE rest | password → pASSWORD |
+| `t` | Toggle case | Password → pASSWORD |
+| `r` | Reverse word | password → drowssap |
+
+#### **Append Characters (Add at END)**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `$X` | Append character X | `$1` → password1 |
+| `$1$2$3` | Append "123" | password → password123 |
+| `$!` | Append "!" | password → password! |
+| `$2$0$2$4` | Append "2024" | password → password2024 |
+| `$2$0$2$4$!` | Append "2024!" | password → password2024! |
+
+#### **Prepend Characters (Add at START)**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `^X` | Prepend character X | `^1` → 1password |
+| `^@` | Prepend "@" | @password |
+
+**⚠️ Important:** Prepend adds **right to left**
+- `^1^2^3` → Result: 123password (not 321password)
+
+#### **Character Substitution**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `sXY` | Replace X with Y | Replace operation |
+| `sa@` | Replace 'a' with '@' | password → p@ssword |
+| `so0` | Replace 'o' with '0' | password → passw0rd |
+| `se3` | Replace 'e' with '3' | hello → h3llo |
+| `si1` | Replace 'i' with '1' | admin → adm1n |
+| `ss$` | Replace 's' with '$' | password → pa$$word |
+
+#### **Delete Operations**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `[` | Delete first character | password → assword |
+| `]` | Delete last character | password → passwor |
+| `DN` | Delete at position N | `D2` → pasword |
+
+#### **Advanced Operations**
+
+| Command | Function | Example |
+|---------|----------|---------|
+| `d` | Duplicate word | password → passwordpassword |
+| `f` | Reflect (duplicate reversed) | password → passworddrowssap |
+| `{` | Rotate left | password → asswordp |
+| `}` | Rotate right | password → dpasswor |
+
+---
+
+## Creating Custom Rules
+
+### Step 1: Edit John's Configuration File
+
+```bash
+sudo nano /etc/john/john.conf
+```
+
+### Step 2: Scroll to Bottom
+
+Press `Ctrl + End` to jump to end of file
+
+### Step 3: Add Rule Section
+
+**Syntax:**
+```
+[List.Rules:RuleName]
+rule1
+rule2
+rule3
+```
+
+**⚠️ Critical:**
+- NO spaces before rules
+- Each rule on its own line
+- Section name goes in brackets
+
+### Step 4: Save and Exit
+
+- Save: `Ctrl + O`, then `Enter`
+- Exit: `Ctrl + X`
+
+---
+
+## Example: Corporate Password Rules
+
+### Scenario: Targeting "Acme Corporation"
+
+**Intelligence gathered:**
+- Company name: Acme
+- Current year: 2024
+- Password policy: uppercase, lowercase, numbers, special character
+
+**Predictable patterns:**
+- Acme2024!
+- Acme@123
+- AcmeAdmin2024
+
+### Custom Rule Creation
+
+```bash
+sudo nano /etc/john/john.conf
+```
+
+**Add at bottom:**
+```
+[List.Rules:AcmeCorp]
+# Capitalize + year + special
+c$2$0$2$4$!         # company → Company2024!
+c$2$0$2$3$!         # company → Company2023!
+
+# Capitalize + common symbols + numbers
+c$@$1$2$3           # company → Company@123
+c$$$2$0$2$4         # company → Company$2024
+
+# Character substitution + patterns
+csa@$2$0$2$4        # company → Comp@ny2024
+cso0$1$2$3$!        # company → C0mpany123!
+
+# All uppercase variations
+u$2$0$2$4$!         # company → COMPANY2024!
+u$@$1$2$3           # company → COMPANY@123
+
+# Admin prefix patterns
+c^A^d^m^i^n$2$0$2$4$!  # company → AdminCompany2024!
+```
+
+### Usage
+
+```bash
+# Create wordlist with company-related terms
+echo "acme" > company_words.txt
+echo "admin" >> company_words.txt
+echo "user" >> company_words.txt
+
+# Crack with custom rules
+john hashes.txt --wordlist=company_words.txt --rules=AcmeCorp
+```
+
+---
+
+## Real-World Rule Examples
+
+### Example 1: Summer2024! Pattern
+
+**Target:** `Summer2024!`  
+**Starting word:** `summer`
+
+**Rule breakdown:**
+```
+c$2$0$2$4$!
+
+c       = Capitalize first letter (summer → Summer)
+$2$0$2$4 = Append "2024" (Summer → Summer2024)
+$!      = Append "!" (Summer2024 → Summer2024!)
+```
+
+**Complete rule:**
+```
+[List.Rules:SeasonalPasswords]
+c$2$0$2$4$!
+c$2$0$2$3$!
+c$2$0$2$2$!
+```
+
+---
+
+### Example 2: P@ssw0rd123 Pattern
+
+**Target:** `P@ssw0rd123`  
+**Starting word:** `password`
+
+**Rule breakdown:**
+```
+csa@so0$1$2$3
+
+c       = Capitalize (password → Password)
+sa@     = Replace a with @ (Password → P@ssword)
+so0     = Replace o with 0 (P@ssword → P@ssw0rd)
+$1$2$3  = Append "123" (P@ssw0rd → P@ssw0rd123)
+```
+
+**Complete rule:**
+```
+[List.Rules:LeetSpeak]
+csa@so0$1$2$3
+csa@so0$1$2$3$!
+cse3so0$1$2$3
+csi1so0$1$2$3$!
+```
+
+---
+
+### Example 3: AdminAcme2024! Pattern
+
+**Target:** `AdminAcme2024!`  
+**Starting word:** `acme`
+
+**Rule breakdown:**
+```
+c^n^i^m^d^A$2$0$2$4$!
+
+c              = Capitalize (acme → Acme)
+^n^i^m^d^A     = Prepend "Admin" (Acme → AdminAcme) *right to left!*
+$2$0$2$4$!     = Append "2024!" (AdminAcme → AdminAcme2024!)
+```
+
+---
+
+## Testing Rules with --stdout
+
+**Preview what rules will generate WITHOUT cracking:**
+
+```bash
+echo "test" | john --stdin --rules=YourRules --stdout
+```
+
+**Example:**
+```bash
+echo "admin" > test.txt
+john --wordlist=test.txt --rules=AcmeCorp --stdout
+```
+
+**Output:**
+```
+admin
+Admin
+ADMIN
+Admin2024!
+Admin2023!
+Admin@123
+Admin$2024
+Adm@n2024
+Adm1n123!
+ADMIN2024!
+ADMIN@123
+AdminAdmin2024!
+```
+
+**This shows ALL variations the rules create!**
+
+---
+
+## Password-Protected File Cracking
+
+### ZIP Files
+
+#### Step 1: Extract Hash
+
+```bash
+zip2john secure.zip > zip_hash.txt
+```
+
+**What this does:**
+- Reads the encrypted ZIP file
+- Extracts password hash in John-compatible format
+- Saves to `zip_hash.txt`
+
+#### Step 2: View Hash
+
+```bash
+cat zip_hash.txt
+```
+
+**Output format:**
+```
+secure.zip:$pkzip2$1*2*2*0*hash_data_here...
+```
+
+#### Step 3: Crack
+
+**Basic wordlist:**
+```bash
+john zip_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
+```
+
+**With custom rules:**
+```bash
+john zip_hash.txt --wordlist=company_words.txt --rules=AcmeCorp
+```
+
+**With mask (if pattern known):**
+```bash
+john --mask='?u?l?l?l?l?d?d?d?d!' zip_hash.txt
+```
+
+#### Step 4: Show Result
+
+```bash
+john --show zip_hash.txt
+```
+
+**Output:**
+```
+secure.zip:Password123!
+
+1 password hash cracked, 0 left
+```
+
+#### Step 5: Extract ZIP
+
+```bash
+# Interactive
+unzip secure.zip
+# Enter password: Password123!
+
+# Non-interactive
+unzip -P Password123! secure.zip
+```
+
+---
+
+### RAR Files
+
+#### Process
+
+```bash
+# Extract hash
+rar2john secure.rar > rar_hash.txt
+
+# Crack
+john rar_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
+
+# Show result
+john --show rar_hash.txt
+
+# Extract
+unrar x -pPassword123! secure.rar
+```
+
+---
+
+### SSH Private Keys
+
+#### Step 1: Extract Hash from Encrypted SSH Key
+
+```bash
+ssh2john id_rsa > ssh_hash.txt
+```
+
+**Common SSH key locations:**
+- `~/.ssh/id_rsa`
+- `~/.ssh/id_ed25519`
+- `~/.ssh/id_ecdsa`
+
+#### Step 2: Crack Passphrase
+
+```bash
+john ssh_hash.txt --wordlist=/usr/share/wordlists/rockyou.txt
+```
+
+**Or with custom rules:**
+```bash
+# If you know user's name is "alice"
+echo "alice" > username.txt
+john ssh_hash.txt --wordlist=username.txt --rules=PersonalRules
+```
+
+#### Step 3: View Cracked Passphrase
+
+```bash
+john --show ssh_hash.txt
+```
+
+**Output:**
+```
+id_rsa:MySecretKey2024!
+
+1 password hash cracked
+```
+
+#### Step 4: Use SSH Key
+
+```bash
+# Remove passphrase from key (optional)
+ssh-keygen -p -f id_rsa
+# Enter old passphrase: MySecretKey2024!
+# Enter new passphrase: (leave blank for none)
+
+# Or use with passphrase
+ssh -i id_rsa user@server
+# Enter passphrase: MySecretKey2024!
+```
+
+---
+
+### Other Supported File Types
+
+#### PDF Files
+```bash
+pdf2john document.pdf > pdf_hash.txt
+john pdf_hash.txt --wordlist=rockyou.txt
+```
+
+#### Office Documents (Word, Excel, PowerPoint)
+```bash
+office2john document.docx > office_hash.txt
+john office_hash.txt --wordlist=rockyou.txt
+```
+
+#### 7-Zip Archives
+```bash
+7z2john archive.7z > 7z_hash.txt
+john 7z_hash.txt --wordlist=rockyou.txt
+```
+
+#### KeePass Databases
+```bash
+keepass2john database.kdbx > keepass_hash.txt
+john keepass_hash.txt --wordlist=rockyou.txt
+```
+
+#### TrueCrypt/VeraCrypt Volumes
+```bash
+truecrypt2john volume.tc > tc_hash.txt
+john tc_hash.txt --wordlist=rockyou.txt
+```
+
+---
+
+## Practical Workflow: Corporate Penetration Test
+
+### Scenario
+
+**Client:** TechCorp Industries  
+**Engagement:** Internal network penetration test  
+**Objective:** Test password security
+
+### Phase 1: Intelligence Gathering (OSINT)
+
+**Information collected:**
+- Company name: TechCorp
+- Founded: 1998
+- Employees post on LinkedIn about "TechCorp family"
+- Current year: 2024
+- Password policy visible in employee handbook screenshot: "8+ characters, uppercase, lowercase, number, special character"
+
+### Phase 2: Create Custom Wordlist
+
+```bash
+nano techcorp_intel.txt
+```
+
+**Add:**
+```
+techcorp
+tech
+corp
+admin
+user
+password
+welcome
+```
+
+### Phase 3: Create Custom Rules
+
+```bash
+sudo nano /etc/john/john.conf
+```
+
+**Add:**
+```
+[List.Rules:TechCorp2024]
+# Current year patterns
+c$2$0$2$4$!
+c$2$0$2$4
+c$@$2$0$2$4
+
+# Founding year
+c$1$9$9$8
+c$1$9$9$8$!
+
+# Generic corporate
+c$!$@$#
+c$1$2$3$!
+c$@$1$2$3
+
+# Leet speak variations
+csa@so0$2$0$2$4$!
+cse3so0$1$2$3
+```
+
+### Phase 4: Capture Hashes
+
+**From Active Directory dump or network capture:**
+```
+TECHCORP\jsmith:hash1
+TECHCORP\aadmin:hash2
+TECHCORP\mjones:hash3
+```
+
+### Phase 5: Crack Passwords
+
+```bash
+john techcorp_hashes.txt --format=nt --wordlist=techcorp_intel.txt --rules=TechCorp2024
+```
+
+### Phase 6: Results
+
+```
+jsmith:TechCorp2024!
+aadmin:Admin@2024
+mjones:Welcome123!
+
+3 of 50 passwords cracked (6%)
+```
+
+### Phase 7: Report
+
+**Findings:**
+- 6% of passwords cracked using company-specific intelligence
+- Common pattern: [CompanyName][Year][!]
+- Recommendation: Implement password complexity requirements that block company name
+
+---
+
+## Security Applications
+
+### For SOC Analysts
+
+**Forensic Investigations:**
+- Recover evidence from password-protected archives
+- Decrypt seized encrypted drives
+- Access locked SSH keys from compromised systems
+- Analyze password patterns in breach data
+
+**Password Audits:**
+- Test employee password strength
+- Identify weak password patterns
+- Demonstrate risk to management
+- Recommend security improvements
+
+**Incident Response:**
+- Recover credentials from memory dumps
+- Access encrypted evidence files
+- Decrypt attacker tools and data
+
+### For Red Team / Penetration Testers
+
+**Targeted Attacks:**
+- Create organization-specific rules based on OSINT
+- Exploit predictable password patterns
+- Crack captured hashes efficiently
+- Demonstrate real-world password vulnerabilities
+
+**Privilege Escalation:**
+- Crack local admin hashes
+- Recover SSH key passphrases
+- Access encrypted configuration files
+- Obtain stored credentials
+
+**Post-Exploitation:**
+- Decrypt documents and archives
+- Recover passwords from password managers
+- Access encrypted databases
+- Crack backup encryption
+
+---
+
+## Best Practices
+
+### Rule Creation
+
+1. **Start with OSINT:** Gather intelligence before creating rules
+2. **Think like users:** What patterns would THEY create?
+3. **Test with --stdout:** Preview output before full crack
+4. **Iterate:** Start simple, add complexity if needed
+5. **Document:** Comment rules for future reference
+
+### File Cracking
+
+1. **Always use appropriate *2john tool first**
+2. **Check hash format** with `cat` before cracking
+3. **Start with rockyou.txt** before custom rules
+4. **Use --show** to view cracked passwords
+5. **Document found passwords** for reporting
+
+### Performance
+
+1. **Use specific hash formats:** `--format=nt` is faster than auto-detect
+2. **Start with small wordlists:** Test rules on 1000 words before 14 million
+3. **Use incremental mode** for systematic brute-force
+4. **Monitor with --status:** Check progress during long cracks
+5. **Use --session** to resume interrupted cracks
+
+---
+
+## Common Mistakes to Avoid
+
+### Rule Syntax Errors
+
+❌ **Wrong: Spaces before rules**
+```
+[List.Rules:MyRules]
+  c           # NO SPACES!
+  c$1$2$3
+```
+
+✅ **Correct: No spaces**
+```
+[List.Rules:MyRules]
+c
+c$1$2$3
+```
+
+---
+
+❌ **Wrong: Missing section header**
+```
+c
+c$1$2$3
+```
+
+✅ **Correct: Include section name**
+```
+[List.Rules:MyRules]
+c
+c$1$2$3
+```
+
+---
+
+❌ **Wrong: Using wrong rule name**
+```
+# Defined as [List.Rules:MyRules]
+john hash.txt --rules=TestRules  # Wrong name!
+```
+
+✅ **Correct: Use exact name**
+```
+# Defined as [List.Rules:MyRules]
+john hash.txt --rules=MyRules  # Correct!
+```
+
+### File Cracking Errors
+
+❌ **Wrong: Trying to crack ZIP directly**
+```
+john secure.zip --wordlist=rockyou.txt
+```
+
+✅ **Correct: Extract hash first**
+```
+zip2john secure.zip > hash.txt
+john hash.txt --wordlist=rockyou.txt
+```
+
+---
+
+❌ **Wrong: Using cat on binary file**
+```
+cat secure.zip  # Shows gibberish (PK...)
+```
+
+✅ **Correct: Extract then unzip**
+```
+unzip -P password secure.zip
+cat extracted_file.txt
+```
+
+---
+
+## Command Reference
+
+### Creating Rules
+```bash
+# Edit config
+sudo nano /etc/john/john.conf
+
+# Add at bottom
+[List.Rules:RuleName]
+rule1
+rule2
+
+# Save: Ctrl+O, Enter
+# Exit: Ctrl+X
+```
+
+### Using Rules
+```bash
+# Basic usage
+john hash.txt --wordlist=words.txt --rules=RuleName
+
+# Preview rules (no cracking)
+john --wordlist=words.txt --rules=RuleName --stdout
+
+# With specific format
+john --format=nt hash.txt --wordlist=words.txt --rules=RuleName
+```
+
+### File Cracking
+```bash
+# ZIP
+zip2john file.zip > hash.txt
+john hash.txt --wordlist=rockyou.txt
+unzip -P password file.zip
+
+# RAR
+rar2john file.rar > hash.txt
+john hash.txt --wordlist=rockyou.txt
+unrar x -ppassword file.rar
+
+# SSH Key
+ssh2john id_rsa > hash.txt
+john hash.txt --wordlist=rockyou.txt
+ssh -i id_rsa user@server
+
+# PDF
+pdf2john file.pdf > hash.txt
+john hash.txt --wordlist=rockyou.txt
+
+# Office
+office2john file.docx > hash.txt
+john hash.txt --wordlist=rockyou.txt
+```
+
+### Viewing Results
+```bash
+# Show cracked passwords
+john --show hash.txt
+
+# Show with specific format
+john --show --format=nt hash.txt
+
+# Check cracking progress
+john --status
+
+# Resume interrupted session
+john --restore
+```
+
+---
+
+## Key Takeaways
+
+### Custom Rules
+
+✅ Rules transform wordlist entries into targeted variations  
+✅ Based on human password psychology and patterns  
+✅ Dramatically increase crack success rate  
+✅ Essential for corporate/targeted pentests  
+✅ Require OSINT for maximum effectiveness  
+
+### Rule Syntax
+
+✅ `c` = Capitalize, `u` = Uppercase, `l` = Lowercase  
+✅ `$X` = Append X, `^X` = Prepend X  
+✅ `sXY` = Replace X with Y (sa@ = a→@)  
+✅ Combine operations: `csa@so0$1$2$3$!`  
+✅ Test with `--stdout` before cracking  
+
+### File Cracking
+
+✅ Always extract hash first with appropriate tool (*2john)  
+✅ Crack hash file, not original file  
+✅ Use --show to view results  
+✅ Works for: ZIP, RAR, PDF, Office, SSH, KeePass, etc.  
+✅ Essential for forensics and incident response  
+
+### Real-World Application
+
+✅ OSINT → Custom wordlist → Custom rules → Targeted attack  
+✅ 90% intelligence gathering, 10% technical execution  
+✅ Understanding user behavior > brute force  
+✅ Document everything for professional reporting  
+✅ Works for both offensive and defensive security  
+
+---
+
+## Next Steps
+
+### Continue Learning:
+- Mask attacks for pattern-based cracking
+- Incremental mode for systematic brute-force
+- Markov mode for statistical password generation
+- GPU acceleration with Hashcat
+- Advanced rule combinations and chaining
+
+### Practice Projects:
+- Create rules for 5 different companies
+- Build OSINT-driven wordlist from LinkedIn
+- Crack sample encrypted files from TryHackMe
+- Document password audit findings professionally
+- Practice forensic file recovery scenarios
+
+### Advanced Topics:
+- Rule performance optimization
+- Hybrid attacks (wordlist + mask)
+- Distributed cracking across multiple machines
+- Custom hash format development
+- Password policy implementation and testing
+
+---
+
+## Resources
+
+### Official Documentation:
+- John the Ripper Documentation: https://www.openwall.com/john/doc/
+- Rule Syntax Reference: https://www.openwall.com/john/doc/RULES.shtml
+- John GitHub Repository: https://github.com/openwall/john
+
+### Tools:
+- CUPP (Custom Wordlist Generator): https://github.com/Mebus/cupp
+- CeWL (Website Word Scraper): https://github.com/digininja/CeWL
+- Mentalist (Rule Builder GUI): https://github.com/sc0tfree/mentalist
+
+### Learning Resources:
+- TryHackMe - John the Ripper Room
+- HackTheBox - Password Cracking Challenges
+- OverTheWire - Krypton Challenges
+- SANS SEC504 - Hacker Tools and Techniques
+
+### Communities:
+- John the Ripper Mailing List
+- Reddit r/john_the_ripper
+- HashCat Forum (similar techniques)
+- OpenWall Forum
+
+---
+
+**Remember:** Password cracking is a tool for authorized security testing only. Always obtain proper authorization before conducting password audits or penetration tests.
