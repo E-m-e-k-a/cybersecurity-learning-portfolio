@@ -1,4 +1,4 @@
-
+Part of my SOC Analyst portfolio (https://github.com/E-m-e-k-a/SOC-Analyst-Portfolio)
 # Cybersecurity Learning Portfolio
 
 Hello! I'm Jesse from  Nigeria — an aspiring **SOC Analyst** (entry point) with the long-term goal of becoming a **Red Teamer**.
